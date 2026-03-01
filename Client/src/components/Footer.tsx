@@ -28,9 +28,9 @@ export default function Footer() {
             </a>
 
             <p className="max-w-[410px] mt-6 text-sm leading-relaxed">
-              We are a digital agency focused on strategy, design and
-              development—helping brands build meaningful digital experiences
-              and grow sustainably.
+              SnapAd AI helps you generate high-impact image and short video ads
+              instantly using powerful AI—designed for creators, marketers, and
+              fast-growing brands.
             </p>
           </div>
 
@@ -61,9 +61,7 @@ export default function Footer() {
 
         <p className="py-4 text-center text-sm text-gray-400">
           © {new Date().getFullYear()}{" "}
-          <a href="https://prebuiltui.com/tailwind-templates?ref=pixel-forge">
-            PrebuiltUI
-          </a>
+            Justinanurag0.2
           . All rights reserved.
         </p>
       </div>
