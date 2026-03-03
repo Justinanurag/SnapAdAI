@@ -24,7 +24,7 @@ export interface Project{
     userPrompt?:string;
     aspectRatio:string;
     targetLength?:number;
-    generateImages?:string;
+    generatedImage?:string;
     generatedVideo?:string;
     isGenerating:boolean;
     isPublished:boolean;

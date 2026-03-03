@@ -2,21 +2,21 @@ import { useEffect, useState } from "react";
 import type { Project } from "../types";
 import { dummyGenerations } from "../assets/assets";
 import { Loader2Icon } from "lucide-react";
-import { div } from "framer-motion/client";
+import Projectcards from "../components/Projectcards";
 
 const Community = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchProjects = async () => {
-    setTimeout(() => {
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
       setProjects(dummyGenerations);
       setLoading(false);
     }, 3000);
-  };
-  useEffect(() => {
-    fetchProjects();
-  });
+
+    return () => clearTimeout(timeoutId);
+  }, []);
+
   return loading ? (
     <div className="flex items-center justify-center min-h-screen">
       <Loader2Icon className="size-7 animate-spin text-indigo-400" />
@@ -25,18 +25,24 @@ const Community = () => {
     <div className="min-h-screen text-white p-6 md:p-12 my-28">
       <div className="max-w-6xl mx-auto">
         <header className="mb-12">
-          <h1 className="text-3xl md:text-4xl font-semibold mb-4">Community</h1>
+          <h1 className="text-3xl md:text-4xl font-semibold mb-4">
+            Community
+          </h1>
           <p className="text-gray-400">
             See what others are creating with SnapAdAI
           </p>
         </header>
-           {/* project list */}
-           <div className="columns-1 sm:column-2 lg:columns-3 gap-4">
-            {projects.map((project)=>(
-              <div>{project.productName}</div>
-            ))}
 
-           </div>
+        <div className="columns-1 sm:columns-2 lg:columns-3 gap-4">
+          {projects.map((project) => (
+            <Projectcards
+              key={project.id}
+              gen={project}
+              setGenerations={setProjects}
+              forCommunity
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
