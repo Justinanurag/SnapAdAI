@@ -9,6 +9,9 @@ import {
 import type { Project } from "../types";
 import { useState, type Dispatch, type SetStateAction } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import axios from "axios";
+import { GhostButton, PrimaryButton } from "./Buttons";
 
 const Projectcards = ({
   gen,
@@ -20,7 +23,59 @@ const Projectcards = ({
   forCommunity?: boolean;
 }) => {
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(true);
+  const togglePublish=async(id:string)=>{
+    const result=await Swal.fire({
+      title:"Are you sure?",
+      icon:"warning",
+      showCancelButton:true,
+      confirmButtonColor: "#e3342f",
+      cancelButtonColor: "#6b7280",
+    })
+    if(result.isConfirmed){
+      try {
+        await axios.post(`/api/`);
+        
+      } catch (error) {
+        
+      }
+    }
+
+  }
+  const handleDelete = async (id: string) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to recover this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#e3342f",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await axios.delete(`/api/generation/${id}`);
+
+        Swal.fire({
+          title: "Deleted!",
+          text: "Your item has been deleted.",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
+        // Optional: refresh data or update state
+        // setData(prev => prev.filter(item => item._id !== id));
+      } catch (error) {
+        Swal.fire({
+          title: "Error!",
+          text: "Something went wrong while deleting.",
+          icon: "error",
+        });
+      }
+    }
+  };
   return (
     <div className="mb-6 break-inside-avoid">
       <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition group">
@@ -104,11 +159,7 @@ const Projectcards = ({
 
                     <li>
                       <button
-                        onClick={() => {
-                          // setGenerations((prev) =>
-                          //   // prev.filter((item) => item._id !== gen._id),
-                          // );
-                        }}
+                        onClick={() => handleDelete(gen.id)}
                         className="w-full text-left flex items-center gap-2 px-4 py-2 text-red-400 hover:bg-red-500/10 transition"
                       >
                         <Trash2Icon size={14} />
@@ -222,6 +273,23 @@ const Projectcards = ({
               <p className="text-sm text-gray-300 leading-relaxed">
                 {gen.userPrompt}
               </p>
+            </div>
+          )}
+          {/* buttons */}
+          {!forCommunity && (
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <GhostButton
+                className="text-xs justify-center"
+                onClick={() => {
+                  navigate(`/result/${gen.id}`);
+                  scrollTo(0, 0);
+                }}
+              >
+                View Details
+              </GhostButton>
+              <PrimaryButton onClick={()=>togglePublish(gen.id)} className="rounded-md" >
+                {gen.isPublished?'Unpublish':'Publish'}
+              </PrimaryButton>
             </div>
           )}
         </div>
