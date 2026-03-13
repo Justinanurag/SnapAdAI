@@ -24,24 +24,20 @@ const Projectcards = ({
 }) => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(true);
-  const togglePublish=async(id:string)=>{
-    const result=await Swal.fire({
-      title:"Are you sure?",
-      icon:"warning",
-      showCancelButton:true,
+  const togglePublish = async (id: string) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      icon: "warning",
+      showCancelButton: true,
       confirmButtonColor: "#e3342f",
       cancelButtonColor: "#6b7280",
-    })
-    if(result.isConfirmed){
+    });
+    if (result.isConfirmed) {
       try {
         await axios.post(`/api/`);
-        
-      } catch (error) {
-        
-      }
+      } catch (error) {}
     }
-
-  }
+  };
   const handleDelete = async (id: string) => {
     const result = await Swal.fire({
       title: "Are you sure?",
@@ -85,7 +81,6 @@ const Projectcards = ({
             gen?.aspectRatio === "9:16" ? "aspect-[9/16]" : "aspect-video"
           } relative overflow-hidden`}
         >
-          {/* Action menu for my generations only */}
           {/* Action menu for my generations only */}
           {!forCommunity && (
             <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition">
@@ -281,14 +276,17 @@ const Projectcards = ({
               <GhostButton
                 className="text-xs justify-center"
                 onClick={() => {
-                  navigate(`/result/${gen.id}`);
+                  navigate(`/results/${gen.id}`);
                   scrollTo(0, 0);
                 }}
               >
                 View Details
               </GhostButton>
-              <PrimaryButton onClick={()=>togglePublish(gen.id)} className="rounded-md" >
-                {gen.isPublished?'Unpublish':'Publish'}
+              <PrimaryButton
+                onClick={() => togglePublish(gen.id)}
+                className="rounded-md"
+              >
+                {gen.isPublished ? "Unpublish" : "Publish"}
               </PrimaryButton>
             </div>
           )}
