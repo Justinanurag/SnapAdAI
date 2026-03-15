@@ -1,12 +1,23 @@
-import { MenuIcon, XIcon } from "lucide-react";
-import { PrimaryButton } from "./Buttons";
+import {
+  DollarSignIcon,
+  FolderEditIcon,
+  GalleryHorizontalEndIcon,
+  InfoIcon,
+  MenuIcon,
+  SparkleIcon,
+  XIcon,
+} from "lucide-react";
+import { GhostButton, PrimaryButton } from "./Buttons";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useClerk, useUser, UserButton } from "@clerk/react";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-
+  const navigate = useNavigate();
+  const { user } = useUser();
+  const { openSignIn, openSignUp } = useClerk();
   const navLinks = [
     { name: "Home", href: "/" },
     { name: "Create", href: "/generate" },
@@ -24,8 +35,8 @@ export default function Navbar() {
     >
       <div className="max-w-6xl mx-auto flex items-center justify-between bg-black/50 backdrop-blur-md border border-white/4 rounded-2xl p-3">
         <Link
-         to='/'
-         onClick={()=>scrollTo(0,0 )}
+          to="/"
+          onClick={() => scrollTo(0, 0)}
           className="flex items-center gap-2 text-xl font-bold tracking-tight"
         >
           <img
@@ -36,12 +47,12 @@ export default function Navbar() {
           <span>
             SnapAd <span className="text-blue-600">AI</span>
           </span>
-        </Link >
+        </Link>
 
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
           {navLinks.map((link) => (
             <Link
-            onClick={()=>scrollTo(0,0)}
+              onClick={() => scrollTo(0, 0)}
               to={link.href}
               key={link.name}
               className="hover:text-white transition"
@@ -50,19 +61,71 @@ export default function Navbar() {
             </Link>
           ))}
         </div>
-
-        <div className="hidden md:flex items-center gap-3">
-          <button className="text-sm font-medium text-gray-300 hover:text-white transition max-sm:hidden">
-            Sign in
+        {!user ? (
+          <div className="hidden md:flex items-center gap-3">
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                openSignIn();
+              }}
+              className="text-sm font-medium text-gray-300 hover:text-white transition max-sm:hidden"
+            >
+              Sign in
+            </button>
+            <PrimaryButton
+              onClick={() => {
+                setIsOpen(false);
+                openSignUp();
+              }}
+              className="max-sm:text-xs hidden sm:inline-block"
+            >
+              Get Started
+            </PrimaryButton>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <GhostButton
+              onClick={() => navigate("/pricing")}
+              className="border-none text-gray-300 sm:py-1.5"
+            >
+              Credits:0
+            </GhostButton>
+            <UserButton>
+              <UserButton.MenuItems>
+                <UserButton.Action
+                  label="Generate"
+                  labelIcon={<SparkleIcon size={14} />}
+                  onClick={() => navigate("/generate")}
+                />
+                <UserButton.Action
+                  label="My Generations"
+                  labelIcon={<GalleryHorizontalEndIcon size={14} />}
+                  onClick={() => navigate("/my-generations")}
+                />
+                <UserButton.Action
+                  label="Community"
+                  labelIcon={<FolderEditIcon size={14} />}
+                  onClick={() => navigate("/community")}
+                />
+                <UserButton.Action
+                  label="Plans"
+                  labelIcon={<DollarSignIcon size={14} />}
+                  onClick={() => navigate("/pricing")}
+                />
+                <UserButton.Action
+                  label="Report"
+                  labelIcon={<InfoIcon size={14} />}
+                  onClick={() => navigate("/report")}
+                />
+              </UserButton.MenuItems>
+            </UserButton>
+          </div>
+        )}
+        {!user && (
+          <button onClick={() => setIsOpen(!isOpen)} className="md:hidden">
+            <MenuIcon className="size-6" />
           </button>
-          <PrimaryButton className="max-sm:text-xs hidden sm:inline-block">
-            Get Started
-          </PrimaryButton>
-        </div>
-
-        <button onClick={() => setIsOpen(!isOpen)} className="md:hidden">
-          <MenuIcon className="size-6" />
-        </button>
+        )}
       </div>
       <div
         className={`flex flex-col items-center justify-center gap-6 text-lg font-medium fixed inset-0 bg-black/40 backdrop-blur-md z-50 transition-all duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"}`}
@@ -74,12 +137,20 @@ export default function Navbar() {
         ))}
 
         <button
-          onClick={() => setIsOpen(false)}
+          onClick={() => {
+            setIsOpen(false);
+            openSignIn();
+          }}
           className="font-medium text-gray-300 hover:text-white transition"
         >
           Sign in
         </button>
-        <PrimaryButton onClick={() => setIsOpen(false)}>
+        <PrimaryButton
+          onClick={() => {
+            setIsOpen(false);
+            openSignUp();
+          }}
+        >
           Get Started
         </PrimaryButton>
 

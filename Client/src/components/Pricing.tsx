@@ -1,96 +1,69 @@
-import { Check } from "lucide-react";
-import { PrimaryButton, GhostButton } from "./Buttons";
-import Title from "./Title";
-import { plansData } from "../assets/dummy-data";
-import { motion } from "framer-motion";
-import { useRef } from "react";
+import React from "react";
+import { PricingTable } from "@clerk/react";
 
-export default function Pricing() {
-  const refs = useRef<(HTMLDivElement | null)[]>([]);
+const Plans = () => {
+  const [isYearly, setIsYearly] = React.useState(false);
+
   return (
-    <section id="pricing" className="py-20 bg-white/3 border-t border-white/6">
-      <div className="max-w-6xl mx-auto px-4">
-        <Title
-          title="Pricing"
-          heading="Flexible Plans for Every Creator"
-          description="Generate viral-ready image and video ads with powerful AI tools. Upgrade anytime as your brand grows."
+    <section className="flex flex-col items-center py-24 px-6 text-white">
+
+      {/* Title */}
+      <h1 className="text-3xl md:text-4xl font-semibold text-center mb-4">
+        Create High-Converting Ads with AI
+      </h1>
+
+      <p className="text-gray-400 text-center max-w-xl mb-12 text-sm">
+        Generate stunning image and video ads for your brand in seconds with
+        SnapAdAI. Start free and upgrade as you grow.
+      </p>
+
+      {/* Billing Toggle */}
+      <div className="flex items-center bg-white/5 border border-white/10 rounded-full p-1 mb-16">
+        
+        <button
+          onClick={() => setIsYearly(false)}
+          className={`px-6 py-2 rounded-full text-sm transition ${
+            !isYearly ? "bg-white/10 text-white" : "text-gray-400"
+          }`}
+        >
+          Monthly
+        </button>
+
+        <button
+          onClick={() => setIsYearly(true)}
+          className={`px-6 py-2 rounded-full text-sm transition flex items-center gap-1 ${
+            isYearly ? "bg-white/10 text-white" : "text-gray-400"
+          }`}
+        >
+          Yearly
+          <span className="text-xs text-indigo-400">15% off</span>
+        </button>
+
+      </div>
+
+      {/* Pricing */}
+      <div className="w-full max-w-5xl mx-auto flex justify-center">
+
+        <PricingTable
+          // billingCycle={isYearly ? "yearly" : "monthly"}
+          appearance={{
+            variables: {
+              colorBackground: "transparent",
+              colorPrimary: "#4f46e5",
+            },
+            elements: {
+              pricingTableCard: "bg-white/5 border border-white/10 rounded-3xl backdrop-blur-lg",
+              pricingTableCardHeader: "bg-white/10 border-b border-white/10",
+              pricingTableCardBody: "text-white",
+              pricingTableButton: "bg-indigo-600 hover:bg-indigo-700 text-white",
+            },
+          }}
         />
 
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {plansData.map((plan, i) => (
-            <motion.div
-              key={i}
-              ref={(el) => {
-                refs.current[i] = el;
-              }}
-              initial={{ y: 150, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{
-                type: "spring",
-                stiffness: 250,
-                damping: 70,
-                mass: 1,
-                delay: 0.1 + i * 0.1,
-              }}
-              onAnimationComplete={() => {
-                const card = refs.current[i];
-                if (card) {
-                  card.classList.add(
-                    "transition",
-                    "duration-500",
-                    "hover:scale-102",
-                  );
-                }
-              }}
-              className={`relative p-6 rounded-xl border backdrop-blur ${
-                plan.popular
-                  ? "border-indigo-500/50 bg-indigo-900/30"
-                  : "border-white/8 bg-indigo-950/30"
-              }`}
-            >
-              {plan.popular && (
-                <p className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-indigo-600 rounded-md text-xs">
-                  Most popular
-                </p>
-              )}
-
-              <div className="mb-6">
-                <p>{plan.name}</p>
-                <div className="flex items-end gap-3">
-                  <span className="text-3xl font-extrabold">{plan.price}</span>
-                  <span className="text-sm text-gray-400">
-                    / {plan.credits}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-300 mt-2">{plan.desc}</p>
-              </div>
-
-              <ul className="space-y-3 mb-6">
-                {plan.features.map((feat, i) => (
-                  <li
-                    key={i}
-                    className="flex items-center gap-3 text-sm text-gray-300"
-                  >
-                    <Check className="w-4 h-4 text-indigo-400" />
-                    {feat}
-                  </li>
-                ))}
-              </ul>
-
-              <div>
-                {plan.popular ? (
-                  <PrimaryButton className="w-full">Get started</PrimaryButton>
-                ) : (
-                  <GhostButton className="w-full justify-center">
-                    Get started
-                  </GhostButton>
-                )}
-              </div>
-            </motion.div>
-          ))}
-        </div>
       </div>
+
     </section>
   );
-}
+};
+
+export default Plans;
