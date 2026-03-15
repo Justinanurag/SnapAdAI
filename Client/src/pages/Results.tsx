@@ -31,7 +31,9 @@ const Results = () => {
       setLoading(false);
     }
   };
-
+  const handleGeneratingVideo = async () => {
+    setIsGenerating(true);
+  };
   useEffect(() => {
     fetchProjectData();
   }, []);
@@ -149,9 +151,19 @@ const Results = () => {
 
                 {/* Action Section */}
                 {!project?.generatedVideo ? (
-                  <PrimaryButton className="flex items-center justify-center gap-2 w-full">
-                    <SparkleIcon className="size-4" />
-                    Generate Video
+                  <PrimaryButton
+                    onClick={handleGeneratingVideo}
+                    disabled={isGenerating}
+                    className="flex items-center justify-center gap-2 w-full"
+                  >
+                    {isGenerating ? (
+                      <>Generating Video...</>
+                    ) : (
+                      <>
+                        <SparkleIcon className="size-4" />
+                        Generate Video
+                      </>
+                    )}
                   </PrimaryButton>
                 ) : (
                   <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-center text-sm font-medium flex items-center justify-center gap-2">
