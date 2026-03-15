@@ -1,5 +1,6 @@
 import { footerLinks } from "../assets/dummy-data";
 import { motion } from "framer-motion";
+import logo from "../assets/Svg3.png"
 
 export default function Footer() {
   return (
@@ -18,7 +19,7 @@ export default function Footer() {
               className="flex items-center gap-2 text-xl font-bold tracking-tight"
             >
               <img
-                src="/src/assets/Svg2.png"
+                src={logo}
                 alt="SnapAd AI logo"
                 className="h-8 w-auto"
               />

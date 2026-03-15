@@ -12,6 +12,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { useClerk, useUser, UserButton } from "@clerk/react";
+import logo from "../assets/Svg3.png"
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -40,7 +41,7 @@ export default function Navbar() {
           className="flex items-center gap-2 text-xl font-bold tracking-tight"
         >
           <img
-            src="/src/assets/Svg3.png"
+            src={logo}
             alt="SnapAd AI logo"
             className="h-8 w-auto"
           />
