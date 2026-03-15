@@ -1,4 +1,4 @@
-import { UploadIcon, VideoIcon, ZapIcon,SparklesIcon } from "lucide-react";
+import { UploadIcon, VideoIcon, ZapIcon } from "lucide-react";
 
 export const featuresData = [
   {

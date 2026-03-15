@@ -15,7 +15,7 @@ import { GhostButton, PrimaryButton } from "./Buttons";
 
 const Projectcards = ({
   gen,
-  setGenerations,
+  // setGenerations,
   forCommunity = false,
 }: {
   gen: Project;
@@ -34,8 +34,10 @@ const Projectcards = ({
     });
     if (result.isConfirmed) {
       try {
-        await axios.post(`/api/`);
-      } catch (error) {}
+        await axios.post(`/api/generation/publish/${id}`);
+      } catch (error) {
+        console.log(error);
+      }
     }
   };
   const handleDelete = async (id: string) => {

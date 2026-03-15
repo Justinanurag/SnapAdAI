@@ -10,7 +10,7 @@ import MyGenerations from "./pages/MyGenerations.tsx";
 import Community from "./pages/Community.tsx";
 import Plans from "./pages/Plans.tsx";
 import Loading from "./pages/Loading.tsx";
-import Pricing from "./components/Pricing.tsx";
+// import Pricing from "./components/Pricing.tsx";
 
 function App() {
   return (

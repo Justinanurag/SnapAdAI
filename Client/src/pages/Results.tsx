@@ -6,7 +6,6 @@ import {
   Loader2Icon,
   RefreshCwIcon,
   SparkleIcon,
-  Video,
   VideoIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
