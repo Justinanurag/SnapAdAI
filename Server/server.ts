@@ -16,7 +16,7 @@ connectDB(); //connection check
 //middleware
 app.use(cors());
 app.get("/", (req: Request, res: Response) => {
-  res.send("Hello from the server");
+  res.send("Snap-ad-ai server is live 🚀");
 });
 
 app.listen(PORT, () => {
