@@ -1,0 +1,17 @@
+#gitignore
+.env
+# Dependency directories
+node_modules/
+
+
+
+# Docker
+docker-compose.override.yml
+
+
+# Build / output
+dist/
+build/
+out/
+target/
+/generated/prisma
