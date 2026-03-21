@@ -50,8 +50,18 @@ const clerkWebhook = async (req: Request, res: Response) => {
         ) {
           const credits = { pro: 80, premimum: 240 };
           const clerkUserId = data?.payer?.user_id;
-          const planId: keyof typeof credits =
-            data?.subscription_items[0]?.plan?.slug;
+          const planIdRaw = data?.subscription_items?.[0]?.plan?.slug;
+          // ✅ Validate user
+          if (!clerkUserId) {
+            return res.status(400).json({ message: "User ID missing" });
+          }
+
+          // ✅ Validate plan safely
+          if (!planIdRaw || !(planIdRaw in credits)) {
+            return res.status(400).json({ message: "Invalid plan" });
+          }
+
+          const planId = planIdRaw as keyof typeof credits;
 
           if (planId !== "pro" && planId !== "premimum") {
             return res.status(400).json({
@@ -82,12 +92,10 @@ const clerkWebhook = async (req: Request, res: Response) => {
         break;
       }
     }
-    res
-      .status(200)
-      .json({
-        received: true,
-        message: "Webhook received successfully: " + type,
-      });
+    res.status(200).json({
+      received: true,
+      message: "Webhook received successfully: " + type,
+    });
   } catch (error) {
     console.log(error);
     res
