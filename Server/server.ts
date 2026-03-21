@@ -10,6 +10,11 @@ const app = express();
 app.post("/api/clerk", express.raw({ type: "application/json" }), clerkWebhook);
 app.use(express.json());
 app.use(clerkMiddleware());
+app.use(cors({
+    origin: ["http://localhost:5173","http://snap-ad-ai.vercel.app/"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+}));
 
 const PORT = process.env.PORT || 5000;
 connectDB(); //connection check
