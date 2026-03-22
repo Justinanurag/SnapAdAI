@@ -12,11 +12,11 @@ export const aj = arcjet({
     // Protect from common attacks
     shield({ mode: "LIVE" }),
 
-    // Bot detection
-    // detectBot({
-    //   mode: "LIVE",
-    //   allow: ["CATEGORY:SEARCH_ENGINE"], // allow Google etc.
-    // }),
+    //Bot detection
+    detectBot({
+      mode: "LIVE",
+      allow: ["CATEGORY:SEARCH_ENGINE"], // allow Google etc.
+    }),
 
     // Rate limiting
     tokenBucket({
