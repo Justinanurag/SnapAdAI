@@ -50,7 +50,9 @@ export async function arcjetMiddleware(
       }
     }
 
-    headers.set("x-forwarded-for", req.ip);
+   if (req.ip) {
+  headers.set("x-forwarded-for", req.ip);
+}
 
     const request = new globalThis.Request(url, {
       method: req.method,
