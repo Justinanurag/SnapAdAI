@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { connectDB } from "./configs/prisma.js";
 import { clerkMiddleware } from "@clerk/express";
 import clerkWebhook from "./controllers/clerk.js";
+import {arcjetMiddleware} from "./configs/arcjet.js";
 dotenv.config();
 
 const app = express();
@@ -15,7 +16,8 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
-
+// Arcjet protection (rate limiting, bot detection, shield)
+app.use(arcjetMiddleware);
 const PORT = process.env.PORT || 5000;
 connectDB(); //connection check
 //middleware
