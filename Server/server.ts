@@ -5,6 +5,8 @@ import { connectDB } from "./configs/prisma.js";
 import { clerkMiddleware } from "@clerk/express";
 import clerkWebhook from "./controllers/clerk.js";
 import {arcjetMiddleware} from "./configs/arcjet.js";
+import userRoutes from "./routes/userRoutes.js";
+import projectRoutes from "./routes/projectRoutes.js";
 dotenv.config();
 
 const app = express();
@@ -25,6 +27,8 @@ app.use(cors());
 app.get("/", (req: Request, res: Response) => {
   res.send("Snap-ad-ai server is live 🚀");
 });
+app.use("api/user",userRoutes);
+app.use("api/project",projectRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
