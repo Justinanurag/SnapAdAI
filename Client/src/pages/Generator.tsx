@@ -8,8 +8,18 @@ import {
   Wand2Icon,
 } from "lucide-react";
 import { PrimaryButton } from "../components/Buttons";
+import { useAuth, useUser } from "@clerk/react";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import api from "../configs/axios";
+
+
 
 const Generator = () => {
+
+  const {user}=useUser();
+  const {getToken}=useAuth();
+  const navigate=useNavigate();
   const [name, setName] = useState("");
   const [productName, setProductName] = useState("");
   const [productDescription, setProductDescription] = useState("");
@@ -29,10 +39,45 @@ const Generator = () => {
     }
   };
 
-  // ✅ Fixed type here
+
   const handleGenerate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsGenerating(true);
+    if(!user){
+      return toast('Please login to generate')
+    }
+    if(!productImage || !modelImage || !name || !productName  || !userPrompt ||!aspectRatio){
+      return toast('Please fill all the fields')
+    }
+    try {
+      setIsGenerating(true);
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("productName", productName);
+      formData.append("productDescription", productDescription);
+      formData.append("userPrompt", userPrompt);
+      formData.append("aspectRatio", aspectRatio);
+      // Multer expects an "images" array with 2 files
+      formData.append("images", productImage);
+      formData.append("images", modelImage);
+
+      const token = await getToken();
+      if (!token) {
+        return toast("Please login to generate");
+      }
+
+      const { data } = await api.post("/api/project/create", formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success(data.message);
+      navigate(`/result/${data.projectId}`);
+
+    
+      
+    } catch (error) {
+      setIsGenerating(false);
+      toast.error('Something went wrong while generating project');
+    }
+  
 
     // Your generation logic here
 

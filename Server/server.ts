@@ -27,8 +27,8 @@ app.use(cors());
 app.get("/", (req: Request, res: Response) => {
   res.send("Snap-ad-ai server is live 🚀");
 });
-app.use("api/user",userRoutes);
-app.use("api/project",projectRoutes);
+app.use("/api/user",userRoutes);
+app.use("/api/project",projectRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

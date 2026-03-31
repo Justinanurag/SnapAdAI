@@ -4,6 +4,8 @@ import { prisma } from "../configs/prisma.js";
 export const getUserCredits = async (req: Request, res: Response) => {
   try {
     const { userId } = req.auth();
+
+    console.log("This is user Id",userId);
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -14,14 +16,12 @@ export const getUserCredits = async (req: Request, res: Response) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    res
-      .status(200)
-      .json({
-        message: "credits fetched successfully!",
-        credits: user?.credits,
-      });
+
+    return res.status(200).json({
+      message: "credits fetched successfully!",
+      credits: user.credits,
+    });
   } catch (error: any) {
-    console.log(error);
     res.status(500).json({ message: error.message || "Internal server error" });
   }
 };
@@ -103,22 +103,25 @@ export const publishProject = async (req: Request, res: Response) => {
     }
 
     const project = await prisma.project.findFirst({
-      where:{id:projectId as string,userId:userId}
-    })
-    if(!project){
+      where: { id: projectId as string, userId: userId },
+    });
+
+    if (!project) {
       return res.status(404).json({ message: "Project not found" });
     }
-    await prisma.project.update({
-      where:{id:projectId as string},
-      data:{isPublished:!project.isPublished}
-    })
+
+    const updatedProject = await prisma.project.update({
+      where: { id: projectId as string },
+      data: { isPublished: !project.isPublished },
+    });
+
     return res.status(200).json({
       message: "Project published successfully!",
-      project,
-      isPublished:!project.isPublished
+      project: updatedProject,
+      isPublished: updatedProject.isPublished,
     });
   } catch (error: any) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

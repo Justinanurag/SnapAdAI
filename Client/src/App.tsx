@@ -11,10 +11,12 @@ import Community from "./pages/Community.tsx";
 import Plans from "./pages/Plans.tsx";
 import Loading from "./pages/Loading.tsx";
 // import Pricing from "./components/Pricing.tsx";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   return (
     <>
+    <Toaster toastOptions={{style:{background:'#333',color:'#fff'}}} />
       <SoftBackdrop />
       <LenisScroll />
       <Navbar />

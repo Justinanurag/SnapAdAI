@@ -11,17 +11,17 @@ import ai from "../configs/ai.js";
 import axios from "axios";
 import path from "path";
 
-const loadImage = (path: string, mineType: string) => {
+const loadImage = (filePath: string, mimeType: string) => {
   return {
     inlineData: {
-      data: fs.readFileSync(path).toString("base64"),
-      mineType,
+      data: fs.readFileSync(filePath).toString("base64"),
+      mimeType,
     },
   };
 };
 
 export const createProject = async (req: Request, res: Response) => {
-  let tempProjectId: string;
+  let tempProjectId: string | null = null;
   const { userId } = req.auth?.() || {};
   let isCreditsDeduced = false;
   const {
@@ -87,7 +87,7 @@ export const createProject = async (req: Request, res: Response) => {
       },
     });
     tempProjectId = project.id;
-    const model = "gemini-3-pro-image-preview";
+    const model = "gemini-2.5-flash-latest";
 
     const generationConfig: GenerateContentConfig = {
       maxOutputTokens: 32768,
@@ -119,8 +119,8 @@ export const createProject = async (req: Request, res: Response) => {
     };
 
     //image to base64 structure for ai model
-    const img1base64 = loadImage(images[0].path, images[0].mineType);
-    const img2base64 = loadImage(images[1].path, images[1].mineType);
+    const img1base64 = loadImage(images[0].path, images[0].mimetype);
+    const img2base64 = loadImage(images[1].path, images[1].mimetype);
     const prompt = {
       text: `Combine the person and product into a realistic photo.
       Make the person naturally hold or use the product.
@@ -133,7 +133,7 @@ export const createProject = async (req: Request, res: Response) => {
 
     //generate the image using the ai model
     const response: any = await ai.models.generateContent({
-      model,
+      model: model || "gemini-2.5-flash",
       contents: [img1base64, img2base64, prompt],
       config: generationConfig,
     });
@@ -173,7 +173,7 @@ export const createProject = async (req: Request, res: Response) => {
       projectId: project.id,
     });
   } catch (error: any) {
-    if (tempProjectId!) {
+    if (tempProjectId) {
       //update the project status and error message
       await prisma.project.update({
         where: { id: tempProjectId },
@@ -191,10 +191,15 @@ export const createProject = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 export const createVideo = async (req: Request, res: Response) => {
+  let userId: string | undefined;
+  let projectId: string | undefined;
+  let isCreditsDeducted = false;
+
   try {
-    const { userId } = req.auth?.() || {};
-    const { projectId } = req.body;
+    userId = req.auth?.().userId;
+    projectId = req.body.projectId;
 
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -204,8 +209,6 @@ export const createVideo = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Project id is required" });
     }
 
-    let isCreditsDeduced = false;
-
     // Get user
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -213,17 +216,10 @@ export const createVideo = async (req: Request, res: Response) => {
     });
 
     if (!user || user.credits < 10) {
-      return res.status(401).json({
+      return res.status(400).json({
         message: "Not enough credits",
       });
     }
-
-    // Deduct credits
-    await prisma.user.update({
-      where: { id: userId },
-      data: { credits: { decrement: 10 } },
-    });
-    isCreditsDeduced = true;
 
     // Get project
     const project = await prisma.project.findUnique({
@@ -244,6 +240,13 @@ export const createVideo = async (req: Request, res: Response) => {
     if (!project.generatedImage) {
       throw new Error("Image not generated");
     }
+
+    // Deduct credits (after validations)
+    await prisma.user.update({
+      where: { id: userId },
+      data: { credits: { decrement: 10 } },
+    });
+    isCreditsDeducted = true;
 
     // Set generating state
     await prisma.project.update({
@@ -281,12 +284,9 @@ export const createVideo = async (req: Request, res: Response) => {
 
     // Polling
     while (!operation.done) {
-      console.log("⏳ Waiting for video generation...");
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      operation = await ai.operations.getVideosOperation({
-        operation,
-      });
+      operation = await ai.operations.getVideosOperation({ operation });
     }
 
     if (!operation.response?.generatedVideos?.length) {
@@ -299,8 +299,12 @@ export const createVideo = async (req: Request, res: Response) => {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
 
     // Download video
+    const videoFile = operation.response.generatedVideos[0]?.video;
+    if (!videoFile) {
+      throw new Error("Video file missing");
+    }
     await ai.files.download({
-      file: operation.response.generatedVideos[0].video,
+      file: videoFile,
       downloadPath: filePath,
     });
 
@@ -318,39 +322,51 @@ export const createVideo = async (req: Request, res: Response) => {
       },
     });
 
-    // Delete local file
-    await fs.promises.unlink(filePath);
+    // Delete local file safely
+    fs.unlink(filePath, (err) => {
+      if (err) console.error("File delete error:", err);
+    });
 
     return res.status(200).json({
       message: "Video generated successfully!",
       videoUrl: uploadResult.secure_url,
-      isCreditsDeduced,
       projectId: project.id,
     });
-
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Error:", error);
 
-    // OPTIONAL: refund credits if failed
-    try {
-      const { userId } = req.auth?.() || {};
-      if (userId) {
-        await prisma.user.update({
+    // Update project error safely
+    if (projectId && userId) {
+      await prisma.project
+        .update({
+          where: { id: projectId },
+          data: {
+            isGenerating: false,
+            error: error?.message || "Something went wrong",
+          },
+        })
+        .catch(() => {});
+    }
+
+    // Refund credits ONLY if deducted
+    if (isCreditsDeducted && userId) {
+      await prisma.user
+        .update({
           where: { id: userId },
           data: { credits: { increment: 10 } },
-        });
-      }
-    } catch (refundError) {
-      console.error("Refund failed:", refundError);
+        })
+        .catch(() => {});
     }
 
     return res.status(500).json({
-      message: "Internal server error",
+      message: error?.message || "Internal server error",
     });
   }
 };
+
 export const createImage = async (req: Request, res: Response) => {
   try {
+    res.status(501).json({ message: "Not implemented" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });
@@ -359,6 +375,10 @@ export const createImage = async (req: Request, res: Response) => {
 
 export const getAllPublishProjects = async (req: Request, res: Response) => {
   try {
+    const projects = await prisma.project.findMany({
+      where: { isPublished: true },
+    });
+    res.json({ projects });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });
@@ -367,6 +387,26 @@ export const getAllPublishProjects = async (req: Request, res: Response) => {
 
 export const deleteProject = async (req: Request, res: Response) => {
   try {
+    const { userId } = req.auth?.() || {};
+    const projectId = req.params.id;
+    const project = await prisma.project.findUnique({
+      where: {
+        id: projectId as string,
+        userId: userId,
+      },
+    });
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    await prisma.project.delete({
+      where: {
+        id: projectId as string,
+      },
+    });
+    return res.status(200).json({
+      message: "Project deleted successfully!",
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });

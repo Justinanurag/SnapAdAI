@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import type { Project } from "../types";
 import { dummyGenerations } from "../assets/assets";
 import {
@@ -8,34 +8,96 @@ import {
   SparkleIcon,
   VideoIcon,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { GhostButton, PrimaryButton } from "../components/Buttons";
+import { useAuth, useUser } from "@clerk/react";
+import api from "../configs/axios";
+import toast from "react-hot-toast";
 
 const Results = () => {
+  const { projectId } = useParams();
+  const { getToken } = useAuth();
+  const { user, isLoaded } = useUser();
+  const navigate = useNavigate();
   const [project, setProjectData] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // API call to fetch data
+  // Dummy data call
+  // const fetchProjectData = async () => {
+  //   try {
+  //     setLoading(true);
+  //     // simulate API delay
+  //     setTimeout(() => {
+  //       setProjectData(dummyGenerations[0]);
+  //       setLoading(false);
+  //     }, 3000);
+  //   } catch (error) {
+  //     console.error("Failed to fetch project:", error);
+  //     setLoading(false);
+  //   }
+  // };
   const fetchProjectData = async () => {
     try {
-      setLoading(true);
-      // simulate API delay
-      setTimeout(() => {
-        setProjectData(dummyGenerations[0]);
-        setLoading(false);
-      }, 3000);
-    } catch (error) {
-      console.error("Failed to fetch project:", error);
+      const token = await getToken();
+      if (!token) {
+        return toast("Please login to generate");
+      }
+      const { data } = await api.get(`/api/user/project/${projectId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProjectData(data.project);
+      setIsGenerating(data.project.isGenerating);
       setLoading(false);
+    } catch (error) {
+      console.log(error);
+      toast.error("Something went wrong while fetching project");
     }
   };
   const handleGeneratingVideo = async () => {
     setIsGenerating(true);
+    try {
+      const token = await getToken();
+      const { data } = await api.post(
+        "/api/project/video",
+        { projectId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      setProjectData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          generatedVideo: data.videoUrl,
+          isGenerating: false,
+        };
+      });
+      toast.success("Video generated successfully");
+      setIsGenerating(false);
+    } catch (error) {
+      console.log(error);
+      toast.error("Something went wrong while generating video!!");
+    }
   };
   useEffect(() => {
-    fetchProjectData();
-  }, []);
+    if (user && !projectId) {
+      fetchProjectData();
+    } else if (isLoaded && !user) {
+      navigate("/");
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user && projectId) {
+      const interval = setInterval(() => {
+        fetchProjectData();
+      }, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [user, isGenerating]);
 
   // if (!project) {
   //   return (

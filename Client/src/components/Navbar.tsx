@@ -8,17 +8,55 @@ import {
   XIcon,
 } from "lucide-react";
 import { GhostButton, PrimaryButton } from "./Buttons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
-import { useClerk, useUser, UserButton } from "@clerk/react";
-import logo from "../assets/Svg3.png"
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useClerk, useUser, UserButton, getToken } from "@clerk/react";
+import logo from "../assets/Svg3.png";
+import api from "../configs/axios.js";
+import toast from "react-hot-toast";
+
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const { user } = useUser();
+  const [credits, setCredits] = useState(0);
+  const { pathname } = useLocation();
   const { openSignIn, openSignUp } = useClerk();
+  //Api call for credits
+
+  const getUserCredits = async () => {
+    try {
+      const token = await getToken();
+      if (!token) {
+        console.warn("Clerk token missing while user is present");
+        return;
+      }
+      const { data } = await api.get("/api/user/credits", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log("credits",data.credits);
+      setCredits(data.credits);
+    } catch (error) {
+      console.log(error);
+      const err = error as unknown as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+      const message =
+        err.response?.data?.message || err.message || "Something went wrong";
+      toast.error(message);
+    }
+  };
+  useEffect(() => {
+    if (user) {
+      (async () => await getUserCredits())();
+    }
+  }, [user, pathname]);
+
   const navLinks = [
     { name: "Home", href: "/" },
     { name: "Create", href: "/generate" },
@@ -40,11 +78,7 @@ export default function Navbar() {
           onClick={() => scrollTo(0, 0)}
           className="flex items-center gap-2 text-xl font-bold tracking-tight"
         >
-          <img
-            src={logo}
-            alt="SnapAd AI logo"
-            className="h-8 w-auto"
-          />
+          <img src={logo} alt="SnapAd AI logo" className="h-8 w-auto" />
           <span>
             SnapAd <span className="text-blue-600">AI</span>
           </span>
@@ -89,7 +123,7 @@ export default function Navbar() {
               onClick={() => navigate("/pricing")}
               className="border-none text-gray-300 sm:py-1.5"
             >
-              Credits:0
+              Credits: {credits}
             </GhostButton>
             <UserButton>
               <UserButton.MenuItems>

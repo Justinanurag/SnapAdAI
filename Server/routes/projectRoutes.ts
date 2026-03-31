@@ -8,8 +8,7 @@ const projectRoutes = express.Router();
 
 projectRoutes.post("/create",upload.array("images",2) ,protect, createProject);
 projectRoutes.post("/video", protect, createVideo);
-projectRoutes.get("/publish/:projectId", protect, createImage);
-projectRoutes.delete("/:projectId", protect, deleteProject);
 projectRoutes.get("/published", protect, getAllPublishProjects);
+projectRoutes.delete("/:projectId", protect, deleteProject);
 
 export default projectRoutes;
