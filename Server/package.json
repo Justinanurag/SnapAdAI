@@ -18,7 +18,7 @@
     "@clerk/express": "^2.0.6",
     "@google/genai": "^1.47.0",
     "@prisma/adapter-pg": "^7.5.0",
-    "@prisma/client": "^7.5.0",
+    "@prisma/client": "^7.6.0",
     "axios": "^1.14.0",
     "cloudinary": "^2.9.0",
     "cors": "^2.8.6",
