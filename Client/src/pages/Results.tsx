@@ -1,6 +1,6 @@
-import { use, useEffect, useState } from "react";
+import {  useEffect, useState } from "react";
 import type { Project } from "../types";
-import { dummyGenerations } from "../assets/assets";
+// import { dummyGenerations } from "../assets/assets";
 import {
   ImageIcon,
   Loader2Icon,
