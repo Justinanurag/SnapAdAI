@@ -8,6 +8,6 @@ const userRoutes=express.Router();
 userRoutes.get('/credits',protect,getUserCredits);
 userRoutes.get('/projects',protect,getAllProjects);
 userRoutes.get('/projects/:projectId',protect,getProjectById);
-userRoutes.get('/publish/:projectId',protect,publishProject);
+userRoutes.patch('/publish/:projectId',protect,publishProject);
 
 export default userRoutes

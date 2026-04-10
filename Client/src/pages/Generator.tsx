@@ -70,9 +70,6 @@ const Generator = () => {
       });
       toast.success(data.message);
       navigate(`/result/${data.projectId}`);
-
-    
-      
     } catch (error) {
       setIsGenerating(false);
       toast.error('Something went wrong while generating project');

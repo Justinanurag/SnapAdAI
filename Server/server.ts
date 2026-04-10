@@ -14,8 +14,8 @@ app.post("/api/clerk", express.raw({ type: "application/json" }), clerkWebhook);
 app.use(express.json());
 app.use(clerkMiddleware());
 app.use(cors({
-    origin: ["http://localhost:5173","http://snap-ad-ai.vercel.app/"],
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: ["http://localhost:5173/","http://snap-ad-ai.vercel.app/"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true
 }));
 // Arcjet protection (rate limiting, bot detection, shield)
@@ -23,7 +23,6 @@ app.use(arcjetMiddleware);
 const PORT = process.env.PORT || 5000;
 connectDB(); //connection check
 //middleware
-app.use(cors());
 app.get("/", (req: Request, res: Response) => {
   res.send("Snap-ad-ai server is live 🚀");
 });

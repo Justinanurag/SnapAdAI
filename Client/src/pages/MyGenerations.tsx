@@ -1,24 +1,56 @@
-import  { useEffect, useState } from "react";
-import { dummyGenerations } from "../assets/assets";
+import { useEffect, useState } from "react";
+// import { dummyGenerations } from "../assets/assets";
 import type { Project } from "../types";
 import { Loader2Icon } from "lucide-react";
 import Projectcards from "../components/Projectcards";
 import { PrimaryButton } from "../components/Buttons";
+import { useAuth, useUser } from "@clerk/react";
+import { useNavigate } from "react-router-dom";
+import api from "../configs/axios";
+import toast from "react-hot-toast";
 
 const MyGenerations = () => {
+  const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
+  const navigate = useNavigate();
+
   const [generations, setgenerations] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
+
+
   const fetchMyGenerations = async () => {
-    setTimeout(() => {
-      setgenerations(dummyGenerations);
+    //Dummy data call
+    // setTimeout(() => {
+    //   setgenerations(dummyGenerations);
+    //   setLoading(false);
+    // }, 3000);
+    try {
+      const token = await getToken();
+      if (!token) {
+        return;
+      }
+      const { data } = await api.get("/api/user/projects", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setgenerations(data.projects);
       setLoading(false);
-    }, 3000);
+    } catch (error: any) {
+      toast.error("Something went wrong while fetching generations");
+      setLoading(false);
+      console.log(error);
+    }
   };
 
   useEffect(() => {
-    fetchMyGenerations();
-  });
+    if (user) {
+      fetchMyGenerations();
+    } else if (isLoaded && !user) {
+      navigate("/");
+    }
+  },[user, isLoaded]);
   return loading ? (
     <div className="flex items-center justify-center min-h-screen">
       <Loader2Icon className="size-7 animate-spin text-indigo-400" />

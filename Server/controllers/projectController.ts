@@ -87,7 +87,7 @@ export const createProject = async (req: Request, res: Response) => {
       },
     });
     tempProjectId = project.id;
-    const model = "gemini-2.5-flash-latest";
+    const model = "gemini-3.1-flash-image-preview";
 
     const generationConfig: GenerateContentConfig = {
       maxOutputTokens: 32768,
@@ -133,7 +133,7 @@ export const createProject = async (req: Request, res: Response) => {
 
     //generate the image using the ai model
     const response: any = await ai.models.generateContent({
-      model: model || "gemini-2.5-flash",
+      model: model,
       contents: [img1base64, img2base64, prompt],
       config: generationConfig,
     });
@@ -355,7 +355,9 @@ export const createVideo = async (req: Request, res: Response) => {
           where: { id: userId },
           data: { credits: { increment: 10 } },
         })
-        .catch(() => {});
+        .catch(() => {
+          console.error("❌ Error refunding credits");
+        });
     }
 
     return res.status(500).json({
@@ -388,8 +390,16 @@ export const getAllPublishProjects = async (req: Request, res: Response) => {
 export const deleteProject = async (req: Request, res: Response) => {
   try {
     const { userId } = req.auth?.() || {};
-    const projectId = req.params.id;
-    const project = await prisma.project.findUnique({
+    const projectId = req.params.projectId || req.body.projectId;
+    console.log("project id and user id", projectId, userId);
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    if (!projectId) {
+      return res.status(400).json({ message: "Project id is required" });
+    }
+
+    const project = await prisma.project.findFirst({
       where: {
         id: projectId as string,
         userId: userId,
