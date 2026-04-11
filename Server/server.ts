@@ -11,13 +11,15 @@ dotenv.config();
 
 const app = express();
 app.post("/api/clerk", express.raw({ type: "application/json" }), clerkWebhook);
-app.use(express.json());
+
 app.use(clerkMiddleware());
 app.use(cors({
-    origin: ["http://localhost:5173/","http://snap-ad-ai.vercel.app/"],
+    origin: ["http://localhost:5173","http://snap-ad-ai.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true
 }));
+
+app.use(express.json());
 // Arcjet protection (rate limiting, bot detection, shield)
 app.use(arcjetMiddleware);
 const PORT = process.env.PORT || 5000;
