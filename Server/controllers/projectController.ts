@@ -11,14 +11,34 @@ import ai from "../configs/ai.js";
 import axios from "axios";
 import path from "path";
 
-const loadImage = (filePath: string, mimeType: string) => {
+const loadImage = (input: Buffer | string, mimeType: string) => {
+  const base64Data =
+    typeof input === "string"
+      ? fs.readFileSync(input).toString("base64")
+      : input.toString("base64");
+
   return {
     inlineData: {
-      data: fs.readFileSync(filePath).toString("base64"),
+      data: base64Data,
       mimeType,
     },
   };
 };
+
+const uploadBufferToCloudinary = (buffer: Buffer, resourceType: "image" | "video") =>
+  new Promise<string>((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { resource_type: resourceType },
+      (error, result) => {
+        if (error || !result?.secure_url) {
+          return reject(error || new Error("Cloudinary upload failed"));
+        }
+        resolve(result.secure_url);
+      },
+    );
+
+    stream.end(buffer);
+  });
 
 export const createProject = async (req: Request, res: Response) => {
   let tempProjectId: string | null = null;
@@ -66,10 +86,10 @@ export const createProject = async (req: Request, res: Response) => {
   try {
     let uploadedImages: any = await Promise.all(
       images.map(async (item: any) => {
-        let result = await cloudinary.uploader.upload(item.path, {
-          resource_type: "image",
-        });
-        return result.secure_url;
+        if (!item?.buffer) {
+          throw new Error("Uploaded image buffer is missing");
+        }
+        return uploadBufferToCloudinary(item.buffer, "image");
       }),
     );
     const project = await prisma.project.create({
@@ -119,8 +139,8 @@ export const createProject = async (req: Request, res: Response) => {
     };
 
     //image to base64 structure for ai model
-    const img1base64 = loadImage(images[0].path, images[0].mimetype);
-    const img2base64 = loadImage(images[1].path, images[1].mimetype);
+    const img1base64 = loadImage(images[0].buffer, images[0].mimetype);
+    const img2base64 = loadImage(images[1].buffer, images[1].mimetype);
     const prompt = {
       text: `Combine the person and product into a realistic photo.
       Make the person naturally hold or use the product.
